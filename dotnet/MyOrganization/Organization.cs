@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace MyOrganization
 {
@@ -16,17 +14,39 @@ namespace MyOrganization
         }
 
         protected abstract Position CreateOrganization();
+//         In the Hire method, we first check whether the person or the title is null or empty. If they are, we throw an exception as we cannot hire a person without a name or for a non-existing position.
 
-        /**
-         * hire the given person as an employee in the position that has that title
-         * 
-         * @param person
-         * @param title
-         * @return the newly filled position or empty if no position has that title
-         */
+// Next, we use a helper method, HireHelper, to recursively navigate through the positions. This helper method takes a position, a person and a title. It first checks whether the title of the current position matches the given title and whether the position is already filled. If the title matches and the position is not filled, it creates a new employee and sets this employee for the current position.
+
+// If the title does not match or the position is already filled, the method recursively calls itself for each of the direct reports of the current position.
+
+// If a suitable position is found in one of the direct reports, it is returned. If no suitable position is found in the entire organization, the method returns null.
         public Position? Hire(Name person, string title)
         {
-            //your code here
+            if (person == null)
+                throw new Exception("Person cannot be null");
+            if (string.IsNullOrEmpty(title))
+                throw new Exception("Title cannot be null or empty");
+
+            return HireHelper(root, person, title);
+        }
+
+        private Position? HireHelper(Position position, Name person, string title)
+        {
+            if (position.GetTitle() == title && !position.IsFilled())
+            {
+                Employee newEmployee = new Employee(new Random().Next(), person); // assuming identifier is random
+                position.SetEmployee(newEmployee);
+                return position;
+            }
+
+            foreach (var report in position.GetDirectReports())
+            {
+                var filledPosition = HireHelper(report, person, title);
+                if (filledPosition != null)
+                    return filledPosition;
+            }
+
             return null;
         }
 
@@ -40,7 +60,7 @@ namespace MyOrganization
             StringBuilder sb = new StringBuilder(prefix + "+-" + pos.ToString() + "\n");
             foreach (Position p in pos.GetDirectReports())
             {
-                sb.Append(PrintOrganization(p, prefix + "  "));
+                sb.Append(PrintOrganization(p, prefix + "\t"));
             }
             return sb.ToString();
         }
